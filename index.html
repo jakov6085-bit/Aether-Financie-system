@@ -3,7 +3,7 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
- <title>AETHER | STEALTH LIQUIDITY PROTOCOL</title>
+ <title>Z-DIMENSION | Interstellar Finance Protocol</title>
  
  <!-- Three.js & Controls -->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -71,6 +71,7 @@
  -webkit-background-clip: text;
  -webkit-text-fill-color: transparent;
  cursor: pointer;
+ text-shadow: 0 0 20px rgba(188, 19, 254, 0.5);
  }
 
 .connect-btn {
@@ -83,8 +84,9 @@
  cursor: pointer;
  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
  transition: 0.3s;
+ box-shadow: 0 0 15px var(--neon-purple);
  }
-.connect-btn:hover { box-shadow: 0 0 15px var(--neon-purple); transform: scale(1.05); }
+.connect-btn:hover { box-shadow: 0 0 25px var(--neon-purple); transform: scale(1.05); }
 
  /* Main Content */
  main {
@@ -161,7 +163,7 @@
  width: 100%; padding: 10px; border: 1px solid var(--neon-purple); 
  color: var(--neon-purple); text-align: center; font-weight: 600; cursor: pointer; 
  }
-.card:hover { transform: translateY(-5px); border-color: var(--neon-cyan); }
+.card:hover { transform: translateY(-5px); border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0,243,255,0.2); }
 
  /* Wallet Panel */
 .wallet-panel {
@@ -264,7 +266,7 @@
  <!-- UI Overlay -->
  <div id="ui-layer">
  <header>
- <div class="brand" onclick="goToHome()">AETHER</div>
+ <div class="brand" onclick="goToHome()">Z-DIMENSION</div>
  <button class="connect-btn" id="connect-wallet-btn" onclick="connectWallet()">CONNECT WALLET</button>
  </header>
 
